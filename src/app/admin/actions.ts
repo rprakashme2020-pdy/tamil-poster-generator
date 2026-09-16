@@ -8,7 +8,24 @@ export async function signIn(form:FormData){const db=await createSupabaseServerC
 export async function signOut(){const db=await createSupabaseServerClient();await db.auth.signOut();redirect("/admin/login")}
 export async function createContent(form:FormData){const {db}=await requireAdmin();const parsed=contentSchema.safeParse({title:form.get("title"),contentText:form.get("contentText"),isActive:form.get("isActive")==="on"});if(!parsed.success)redirect(`/admin?section=content&error=${encodeURIComponent(parsed.error.issues[0]?.message||"Invalid content.")}`);const value=parsed.data;const {error}=await db.rpc("admin_create_tamil_content",{p_title:value.title,p_content_text:value.contentText,p_is_active:value.isActive});if(error)redirect(`/admin?section=content&error=${encodeURIComponent(error.message)}`);revalidatePath("/admin");redirect("/admin?section=content&success=Content%20saved%20successfully.")}
 export async function toggleContent(form:FormData){const {db,user}=await requireAdmin();const id=String(form.get("id")),active=form.get("active")==="true";const {data,error}=await db.from("tamil_contents").update({is_active:!active,updated_at:new Date().toISOString()}).eq("id",id).select().single();if(error)throw error;await db.from("audit_logs").insert({actor_id:user.id,action:active?"disable":"enable",entity_type:"tamil_content",entity_id:id,new_data:data});revalidatePath("/admin")}
-export async function deleteContent(form:FormData){const {db,user}=await requireAdmin();const id=String(form.get("id"));const {data}=await db.from("tamil_contents").delete().eq("id",id).select().single();await db.from("audit_logs").insert({actor_id:user.id,action:"delete",entity_type:"tamil_content",entity_id:id,old_data:data});revalidatePath("/admin")}
+export async function deleteContent(form:FormData){
+ const {db,user}=await requireAdmin(),id=String(form.get("id"));
+ if(!id)redirect("/admin?section=content&error=Missing%20content%20identifier.");
+ const {data:old,error:readError}=await db.from("tamil_contents").select("*").eq("id",id).single();
+ if(readError)redirect(`/admin?section=content&error=${encodeURIComponent(readError.message)}`);
+ const {error:deleteError}=await db.from("tamil_contents").delete().eq("id",id);
+ if(deleteError?.code==="23503"){
+  const {error:archiveError}=await db.from("tamil_contents").update({is_active:false,updated_at:new Date().toISOString()}).eq("id",id);
+  if(archiveError)redirect(`/admin?section=content&error=${encodeURIComponent(archiveError.message)}`);
+  await db.from("audit_logs").insert({actor_id:user.id,action:"archive",entity_type:"tamil_content",entity_id:id,old_data:old,new_data:{...old,is_active:false}});
+  revalidatePath("/admin");
+  redirect("/admin?section=content&success=This%20content%20has%20download%20history%2C%20so%20it%20was%20disabled%20and%20archived.");
+ }
+ if(deleteError)redirect(`/admin?section=content&error=${encodeURIComponent(deleteError.message)}`);
+ await db.from("audit_logs").insert({actor_id:user.id,action:"delete",entity_type:"tamil_content",entity_id:id,old_data:old});
+ revalidatePath("/admin");
+ redirect("/admin?section=content&success=Content%20deleted%20successfully.");
+}
 
 export async function updateContent(form:FormData){const {db,user}=await requireAdmin();const id=String(form.get("id"));const value=contentSchema.parse({title:form.get("title"),contentText:form.get("contentText"),isActive:form.get("isActive")==="on"});const {data:old}=await db.from("tamil_contents").select("*").eq("id",id).single();const {data,error}=await db.from("tamil_contents").update({title:value.title,content_text:value.contentText,is_active:value.isActive,updated_at:new Date().toISOString()}).eq("id",id).select().single();if(error)throw error;await db.from("audit_logs").insert({actor_id:user.id,action:"update",entity_type:"tamil_content",entity_id:id,old_data:old,new_data:data});revalidatePath("/admin")}
 
