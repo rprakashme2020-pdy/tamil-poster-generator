@@ -23,10 +23,11 @@ export async function renderPoster(canvas:HTMLCanvasElement,input:RenderInput){
  fitted.lines.forEach((line,i)=>ctx.fillText(line,w/2,startY+i*fitted.lineHeight));
  ctx.fillStyle="#d49a29";ctx.fillRect(w*.39,messageBottom+h*.015,w*.22,8);
 
- const blockTop=h*.66,blockBottom=h*.925,blockH=blockBottom-blockTop,photoSize=Math.min(w*.34,blockH*.82),px=margin,py=blockTop+(blockH-photoSize)/2;
+ const blockTop=h*.66,blockBottom=h*.925,blockH=blockBottom-blockTop,photoSize=Math.min(w*.36,blockH*.9),px=w-margin-photoSize,py=blockBottom-photoSize;
+ ctx.fillStyle=dark?"rgba(255,255,255,.055)":"rgba(255,255,255,.58)";ctx.beginPath();ctx.roundRect(margin,blockTop,w-margin*2,blockH,40);ctx.fill();
  ctx.save();ctx.beginPath();if(heritage)ctx.ellipse(px+photoSize/2,py+photoSize/2,photoSize/2,photoSize/2,0,0,Math.PI*2);else ctx.roundRect(px,py,photoSize,photoSize,38);ctx.clip();cover(ctx,photo,px,py,photoSize,photoSize);ctx.restore();ctx.strokeStyle="#d49a29";ctx.lineWidth=10;if(heritage){ctx.beginPath();ctx.ellipse(px+photoSize/2,py+photoSize/2,photoSize/2,photoSize/2,0,0,Math.PI*2);ctx.stroke()}else ctx.strokeRect(px,py,photoSize,photoSize);
 
- const textX=px+photoSize+(w*.055),textW=w-margin-textX;ctx.textAlign="left";ctx.fillStyle=accent;ctx.font=`900 ${input.format==="whatsapp"?60:48}px "Noto Sans Tamil",Latha,sans-serif`;
+ const textX=margin+w*.045,textW=px-textX-w*.04;ctx.textAlign="left";ctx.fillStyle=accent;ctx.font=`900 ${input.format==="whatsapp"?60:48}px "Noto Sans Tamil",Latha,sans-serif`;
  const nameLines=wrap(ctx,input.fullName.trim(),textW).slice(0,2),nameLH=input.format==="whatsapp"?78:62,nameY=blockTop+blockH*.39-(nameLines.length-1)*nameLH/2;nameLines.forEach((line,i)=>ctx.fillText(line,textX,nameY+i*nameLH));
  ctx.fillStyle=dark?"#f7f1e5":"#39322b";ctx.font=`600 ${input.format==="whatsapp"?34:28}px "Noto Sans Tamil",Latha,sans-serif`;const designationLines=wrap(ctx,input.designation.trim(),textW).slice(0,3),desY=nameY+nameLines.length*nameLH+18;designationLines.forEach((line,i)=>ctx.fillText(line,textX,desY+i*(input.format==="whatsapp"?50:42)));
  if(input.symbolUrl){try{const symbol=await load(input.symbolUrl);ctx.drawImage(symbol,w-180,44,120,120)}catch{}}
