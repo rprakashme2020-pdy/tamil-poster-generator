@@ -1,0 +1,12 @@
+@import "tailwindcss";
+:root { --ink:#171411; --paper:#f7f4ee; --red:#b42327; --gold:#d49a29; }
+* { box-sizing:border-box; }
+html { background:var(--paper); }
+body { margin:0; color:var(--ink); background:radial-gradient(circle at 12% 0%,rgba(212,154,41,.12),transparent 30rem),linear-gradient(180deg,#fbfaf7,var(--paper)); font-family:"Noto Sans Tamil","Latha","Vijaya",system-ui,sans-serif; }
+button,input,select { font:inherit; } button { cursor:pointer; } button:disabled { cursor:not-allowed; opacity:.55; } ::selection { background:#f1d99f; }
+.focus-ring:focus-visible { outline:3px solid rgba(180,35,39,.28); outline-offset:2px; }
+.field { width:100%; border:1px solid #ded8cd; border-radius:14px; background:white; padding:.78rem .9rem; outline:none; transition:.2s; }
+.field:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(180,35,39,.1); }
+.label { display:block; margin-bottom:.45rem; font-size:.86rem; font-weight:700; }
+.card { border:1px solid rgba(65,52,39,.12); border-radius:24px; background:rgba(255,255,255,.82); box-shadow:0 20px 50px rgba(65,52,39,.07); backdrop-filter:blur(14px); }
+@media (prefers-reduced-motion:no-preference) { .poster-enter { animation:poster-in .45s cubic-bezier(.22,1,.36,1); } @keyframes poster-in { from { opacity:0; transform:translateY(12px) scale(.985); } } }
